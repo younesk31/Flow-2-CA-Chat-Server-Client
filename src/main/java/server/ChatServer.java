@@ -21,6 +21,8 @@ public class ChatServer {
         ArrayList<String> users = new ArrayList<>();
         users.add("1");
         users.add("2");
+        users.add("3");
+        users.add("4");
         users.add("SUT DUT");
         users.add("Søren");
         users.add("lort");
@@ -172,12 +174,20 @@ class ClientHandler implements Runnable {
                         mc.dos.writeUTF("MESSAGE#" + this.name + ": " + msgToSend);
                         break;
                     } else if (cmd.contains("SEND") && recipients != null && mc.isloggedin && !mc.name.equals(this.name)) {
+                        boolean messageSend;
                         for (int i = 0; i < recipients.length; i++) {
-                            if (recipients[i].equals(mc.name) && mc.isloggedin) {
-                                mc.dos.writeUTF("MESSAGE#" + this.name + ": " + msgToSend);
+                            messageSend = false;
+                            for (ClientHandler mc1 : ChatServer.ar) {
+                                if (recipients[i].equals(mc1.name) && mc1.isloggedin) {
+                                    mc1.dos.writeUTF("MESSAGE#" + this.name + ": " + msgToSend);
+                                    messageSend = true;
+                                    break;
+                                }
+                            }
+                            if (!messageSend) {
+                                dos.writeUTF(recipients[i] + " not found");
                             }
                         }
-
                         break;
                     } else {
                         dos.writeUTF("CLOSE#1");
