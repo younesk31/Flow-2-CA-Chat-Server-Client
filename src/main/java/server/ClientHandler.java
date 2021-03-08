@@ -10,6 +10,7 @@ class ClientHandler implements Runnable {
     final DataInputStream dis;
     final DataOutputStream dos;
     private final String name;
+    LogHandler lh = new LogHandler();
     Socket s;
     boolean isloggedin;
 
@@ -21,6 +22,7 @@ class ClientHandler implements Runnable {
         this.isloggedin = true;
     }
 
+    // check the array for online users as soon as a new client connects and output it
     public void justConnected() throws IOException {
         StringBuilder connected = new StringBuilder();
         connected.append("ONLINE#");
@@ -33,10 +35,12 @@ class ClientHandler implements Runnable {
 
         for (ClientHandler ch2 : ChatServer.ar) {
             ch2.dos.writeUTF(connected.toString());
+            ch2.lh.clientLog.write(connected.toString());
+            lh.clientLog.newLine();
         }
     }
 
-
+    // check the array for online users as soon as a client disconnects and output it to the online users
     public void closeOnline() throws IOException {
         StringBuilder connected = new StringBuilder();
         connected.append("Server: '").append(this.name).append("' Left the server!\n");
@@ -50,6 +54,8 @@ class ClientHandler implements Runnable {
         for (ClientHandler ch2 : ChatServer.ar) {
             if (ch2.isloggedin) {
                 ch2.dos.writeUTF(connected.toString());
+                ch2.lh.clientLog.write(connected.toString());
+                lh.clientLog.newLine();
             }
         }
     }
@@ -59,14 +65,15 @@ class ClientHandler implements Runnable {
         String received;
         while (s.isConnected() && !s.isClosed()) {
             try {
-                // receive the string
+                // receive client input string
                 received = dis.readUTF();
+                // take what we receive and put it trough a tokenizer that splits at delimiter '#'
                 StringTokenizer st = new StringTokenizer(received, "#");
                 String cmd = st.nextToken();
                 String recipient = "null";
-                String msgToSend = "null";
+                String msgToSend = null;
                 String[] recipients = null;
-
+                // tokenizer and send to more functionality
                 while (st.hasMoreTokens()) {
                     recipient = st.nextToken();
                     if (recipient.contains(",")) {
@@ -76,7 +83,7 @@ class ClientHandler implements Runnable {
                         msgToSend = st.nextToken();
                     }
                 }
-
+                // most of the functionality to send messages to eachother on the server
                 for (ClientHandler mc : ChatServer.ar) {
                     // Listen to the Close cmd and inform the rest that this user has left the server
                     if (cmd.equals("CLOSE") && !mc.name.equals(this.name)) {
@@ -84,51 +91,66 @@ class ClientHandler implements Runnable {
                         closeOnline();
                         break;
                         // Send a msg to all
-                    } else if (cmd.contains("SEND") && recipient.equals("*") && mc.isloggedin && !mc.name.equals(this.name)) {
-                        mc.dos.writeUTF("MESSAGE#" + this.name + ": " + msgToSend);
-                        break;
+                    } else if (cmd.contains("SEND") && recipient.contains("*") && mc.isloggedin) {
+                        if (!mc.name.equals(this.name)) {
+                            mc.dos.writeUTF("MESSAGE#" + this.name + "-->all#" + msgToSend);
+                            mc.lh.clientLog.write("MESSAGE#" + this.name + "-->all#" + msgToSend);
+                            mc.lh.clientLog.newLine();
+                        } else {
+                            break;
+                        }
                         // Send a dm to a specific person
                     } else if (cmd.contains("SEND") && mc.name.equals(recipient) && mc.isloggedin && !mc.name.equals(this.name)) {
-                        mc.dos.writeUTF("MESSAGE#" + this.name + ": " + msgToSend);
+                        mc.dos.writeUTF("MESSAGE#" + this.name + "#" + msgToSend);
+                        mc.lh.clientLog.write("MESSAGE#" + this.name + "#" + msgToSend);
+                        mc.lh.clientLog.newLine();
                         break;
                     } else if (cmd.contains("SEND") && recipients != null && mc.isloggedin && !mc.name.equals(this.name)) {
                         boolean messageSend;
-                        for (int i = 0; i < recipients.length; i++) {
+                        for (String name : recipients) {
                             messageSend = false;
                             for (ClientHandler mc1 : ChatServer.ar) {
-                                if (recipients[i].equals(mc1.name) && mc1.isloggedin) {
-                                    mc1.dos.writeUTF("MESSAGE#" + this.name + ": " + msgToSend);
+                                if (name.equals(mc1.name) && mc1.isloggedin) {
+                                    mc1.dos.writeUTF("MESSAGE#" + this.name + "#" + msgToSend);
+                                    mc1.lh.clientLog.write("MESSAGE#" + this.name + "#" + msgToSend);
+                                    mc1.lh.clientLog.newLine();
                                     messageSend = true;
                                     break;
                                 }
                             }
                             if (!messageSend) {
-                                dos.writeUTF(recipients[i] + " not found");
+                                dos.writeUTF(name + " not found");
+                                lh.clientLog.write(name + " not found");
+                                lh.clientLog.newLine();
                             }
                         }
                         break;
+                        // send a close cmd to the client if it doesn't meet server syntax (illegal input)
                     } else {
                         dos.writeUTF("CLOSE#1");
-                        closeOnline();
                         this.isloggedin = false;
-                        ChatServer.ar.remove(this.s);
+                        closeOnline();
+                        //ChatServer.ar.remove(this.s);
                         this.s.close();
                         break;
                     }
                 }
+                // close the client connection if the client wishes to do so
                 if (cmd.equals("CLOSE")) {
                     this.dos.writeUTF("CLOSE#0");
                     this.isloggedin = false;
-                    ChatServer.ar.remove(this.s);
+                    //ChatServer.ar.remove(this.s);
                     this.s.close();
                     break;
                 }
+                lh.clientLog.flush();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
         try {
-            // closing resources
+            // close and free resources
+            lh.clientLog.close();
             this.dis.close();
             this.dos.close();
 

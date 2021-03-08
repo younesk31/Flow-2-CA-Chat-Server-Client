@@ -1,8 +1,0 @@
-New client on @127.0.0.1:63488
-Authorized user: 1 Connected!
-New client on @127.0.0.1:63676
-Did not find user: 8 - Closed - 127.0.0.1:63676 Connection
-New client on @127.0.0.1:63796
-Did not find user: 9 - Closed - 127.0.0.1:63796 Connection
-2021-03-08T15:04:07.472303200 New client on @127.0.0.1:63923
-2021-03-08T15:04:13.874324900 Did not find user: 10 - Closed - 127.0.0.1:63923 Connection

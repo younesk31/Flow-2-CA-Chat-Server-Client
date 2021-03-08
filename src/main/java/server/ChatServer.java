@@ -26,13 +26,12 @@ public class ChatServer {
         Socket s;
         // infinite loop for client request for as long the socket is open
         do {
-            // Create the log file
-            FileWriter writer = new FileWriter("Log-fil.txt/", true);
-            BufferedWriter addW = new BufferedWriter(writer);
+            // Create the LogHandler
+            LogHandler lh = new LogHandler();
             // Accept the incoming request
             s = ss.accept();
-            addW.write( " New client on @" + s.getInetAddress().toString().split("/")[1] + ":" + s.getPort());
-            addW.newLine();
+            lh.serverLog.write( " New client on @" + s.getInetAddress().toString().split("/")[1] + ":" + s.getPort());
+            lh.serverLog.newLine();
             // obtain input and output streams
             DataInputStream dis = new DataInputStream(s.getInputStream());
             DataOutputStream dos = new DataOutputStream(s.getOutputStream());
@@ -46,8 +45,8 @@ public class ChatServer {
                     boolean loggin = false;
                     for (String string : users) {
                         if (string.equals(name)) {
-                            addW.write(" Authorized user: " + name + " Connected!");
-                            addW.newLine();
+                            lh.serverLog.write(" Authorized user: " + name + " Connected!");
+                            lh.serverLog.newLine();
                             // Create a new handler object for handling this request.
                             ClientHandler match = new ClientHandler(s, name, dis, dos);
                             // Create a new Thread with this object.
@@ -64,11 +63,11 @@ public class ChatServer {
                     }
                     if (!loggin) {
                         dos.writeUTF("CLOSE#2");
-                        addW.write(" Did not find user: " + name + " - Closed - " + s.getInetAddress().toString().split("/")[1] + ":" + s.getPort() + " Connection");
-                        addW.newLine();
+                        lh.serverLog.write(" Did not find user: " + name + " - Closed - " + s.getInetAddress().toString().split("/")[1] + ":" + s.getPort() + " Connection");
+                        lh.serverLog.newLine();
                     }
                 }
-                addW.close();
+                lh.serverLog.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }

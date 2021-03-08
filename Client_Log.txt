@@ -1,0 +1,17 @@
+ONLINE#1
+
+
+ONLINE#1,2,3
+ONLINE#1
+ONLINE#1,2ONLINE#1,2,3MESSAGE#3-->all# hi friends
+
+ONLINE#1,2
+ONLINE#1,2,3MESSAGE#3-->all# hi friends
+MESSAGE#2-->all#BLYAT!
+
+
+Server: '1' Left the server!
+ONLINE#2,3
+Server: '1' Left the server!
+ONLINE#2,3Server: '3' Left the server!
+ONLINE#2
