@@ -119,7 +119,7 @@ class ClientHandler implements Runnable {
                     for (ClientHandler mc : ChatServer.ar) {
                         // Listen to the Close cmd and inform the rest that this user has left the server
                     if (cmd.equals("CLOSE") && !mc.name.equals(this.name)) {
-                        mc.dos.writeUTF("S: "+this.name + ": Left the server!");
+                        mc.dos.writeUTF("Server: '"+ this.name +"' Left the server!");
                         break;
                         // Send a msg to all
                     } else if (cmd.contains("SEND") && recipient.equals("*") && mc.isloggedin && !mc.name.equals(this.name)) {
