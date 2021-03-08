@@ -31,18 +31,14 @@ class ClientHandler implements Runnable {
         }
         connected.deleteCharAt(connected.length() - 1);
 
-
         for (ClientHandler ch2 : ChatServer.ar) {
             ch2.dos.writeUTF(connected.toString());
         }
-
     }
 
 
     public void closeOnline() throws IOException {
         StringBuilder connected = new StringBuilder();
-
-
         connected.append("Server: '").append(this.name).append("' Left the server!\n");
         connected.append("ONLINE#");
         for (ClientHandler ch : ChatServer.ar) {
@@ -65,7 +61,6 @@ class ClientHandler implements Runnable {
             try {
                 // receive the string
                 received = dis.readUTF();
-
                 StringTokenizer st = new StringTokenizer(received, "#");
                 String cmd = st.nextToken();
                 String recipient = "null";

@@ -1,11 +1,11 @@
 package server;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Vector;
 
@@ -22,44 +22,32 @@ public class ChatServer {
         users.add("3");
         users.add("4");
 
-
         ServerSocket ss = new ServerSocket(8088);
         Socket s;
         // infinite loop for client request for as long the socket is open
         do {
+            // Create the log file
+            FileWriter writer = new FileWriter("Log-fil.txt/", true);
+            BufferedWriter addW = new BufferedWriter(writer);
             // Accept the incoming request
-
-
             s = ss.accept();
-            System.out.println("New client received @ " + s.getInetAddress().toString().split("/")[1] + ":" + s.getPort());
+            addW.write( " New client on @" + s.getInetAddress().toString().split("/")[1] + ":" + s.getPort());
+            addW.newLine();
             // obtain input and output streams
             DataInputStream dis = new DataInputStream(s.getInputStream());
             DataOutputStream dos = new DataOutputStream(s.getOutputStream());
 
             String rv = dis.readUTF();
             try {
-                try {
-                    File file = new File("log.txt/");
-                    if (file.createNewFile()) {
-                        System.out.print("Log created!\t");
-                    } else {
-                        System.out.print("Log loaded!\t");
-                    }
-                } catch (IOException e) {
-                    System.out.println("Log creation error! - " + e + "\n");
-                }
-
                 if (rv.contains("CONNECT")) {
                     // make sure that the input name is no longer than 20 characters long or else  >:(
                     //String twentyLong = format("%.20s", rv.split("#")[1]);
                     String name = rv.split("#")[1];
-
                     boolean loggin = false;
-
-
                     for (String string : users) {
                         if (string.equals(name)) {
-                            System.out.println("Authorized user: " + name + " Connected!");
+                            addW.write(" Authorized user: " + name + " Connected!");
+                            addW.newLine();
                             // Create a new handler object for handling this request.
                             ClientHandler match = new ClientHandler(s, name, dis, dos);
                             // Create a new Thread with this object.
@@ -76,11 +64,11 @@ public class ChatServer {
                     }
                     if (!loggin) {
                         dos.writeUTF("CLOSE#2");
-                        //System.out.println("User not found");
-                        //s.close();
+                        addW.write(" Did not find user: " + name + " - Closed - " + s.getInetAddress().toString().split("/")[1] + ":" + s.getPort() + " Connection");
+                        addW.newLine();
                     }
                 }
-
+                addW.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
