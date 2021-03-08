@@ -19,6 +19,8 @@ public class ChatServer {
 
     public static void main(String[] args) throws IOException {
         ArrayList<String> users = new ArrayList<>();
+        users.add("1");
+        users.add("2");
         users.add("SUT DUT");
         users.add("Søren");
         users.add("lort");
@@ -43,30 +45,33 @@ public class ChatServer {
                     //String twentyLong = format("%.20s", rv.split("#")[1]);
                     String name = rv.split("#")[1];
 
+                    boolean loggin = false;
+
+
                     for(String string : users) {
-                        if (string.equals(name)) {
-                            System.out.println("Authorized user: " + name + " Connected!");
-                            // Create a new handler object for handling this request.
-                            ClientHandler match = new ClientHandler(s, name, dis, dos);
-                            // Create a new Thread with this object.
-                            Thread t = new Thread(match);
-                            // add this client to active clients list
-                            ar.add(match);
-                            // start the thread.
-                            t.start();
-                            // check who is connected on login and output it
-                            dos.writeUTF("Welcome to the Chit-Chat-Server");
-                            match.justConnected();
-                        } else {
-                            dos.writeUTF("CLOSE#2");
-                            System.out.println("Closing connection: Did not meet specifications ");
-                            break;
+                            if (string.equals(name)) {
+                                System.out.println("Authorized user: " + name + " Connected!");
+                                // Create a new handler object for handling this request.
+                                ClientHandler match = new ClientHandler(s, name, dis, dos);
+                                // Create a new Thread with this object.
+                                Thread t = new Thread(match);
+                                // add this client to active clients list
+                                ar.add(match);
+                                // start the thread.
+                                t.start();
+                                // check who is connected on login and output it
+                                dos.writeUTF("Welcome to the Chit-Chat-Server");
+                                match.justConnected();
+                                loggin = true;
+                            }
                         }
+                    if(!loggin){
+                        dos.writeUTF("CLOSE#2");
+                        System.out.println("User not found");
+                        //s.close();
                     }
-                } else {
-                    s.close();
-                    break;
                 }
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -140,9 +145,13 @@ class ClientHandler implements Runnable {
                 String cmd = st.nextToken();
                 String recipient = "null";
                 String msgToSend = "null";
+                String[] recipients = null;
 
                 while (st.hasMoreTokens()) {
                     recipient = st.nextToken();
+                    if(recipient.contains(",")) {
+                        recipients = recipient.split(",");
+                    }
                     while (st.hasMoreTokens()) {
                         msgToSend = st.nextToken();
                     }
@@ -156,11 +165,19 @@ class ClientHandler implements Runnable {
                         break;
                         // Send a msg to all
                     } else if (cmd.contains("SEND") && recipient.equals("*") && mc.isloggedin && !mc.name.equals(this.name)) {
-                        mc.dos.writeUTF(this.name + ": " + msgToSend);
+                        mc.dos.writeUTF( "MESSAGE#"+ this.name + ": " + msgToSend);
                         break;
                         // Send a dm to a specific person
                     } else if (cmd.contains("SEND") && mc.name.equals(recipient) && mc.isloggedin && !mc.name.equals(this.name)) {
-                        mc.dos.writeUTF(this.name + ": " + msgToSend);
+                        mc.dos.writeUTF("MESSAGE#" + this.name + ": " + msgToSend);
+                        break;
+                    } else if (cmd.contains("SEND") && recipients != null && mc.isloggedin && !mc.name.equals(this.name)) {
+                        for (int i = 0; i < recipients.length; i++) {
+                            if (recipients[i].equals(mc.name) && mc.isloggedin) {
+                                mc.dos.writeUTF("MESSAGE#" + this.name + ": " + msgToSend);
+                            }
+                        }
+
                         break;
                     } else {
                         dos.writeUTF("CLOSE#1");
