@@ -8,7 +8,7 @@ SERVER_NAME="chat-server"
 
 DROPLET_URL="178.128.194.107"
 # Change the root below to the non-root user you have setup:
-DROPLET_USER="root"
+DROPLET_USER="chatuser"
 
 
 echo "##############################"

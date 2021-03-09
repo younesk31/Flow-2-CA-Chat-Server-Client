@@ -22,7 +22,7 @@ public class ChatServer {
         users.add("3");
         users.add("4");
 
-        ServerSocket ss = new ServerSocket(8088);
+        ServerSocket ss = new ServerSocket(6666);
         Socket s;
         // infinite loop for client request for as long the socket is open
         do {
@@ -30,6 +30,7 @@ public class ChatServer {
             LogHandler lh = new LogHandler();
             // Accept the incoming request
             s = ss.accept();
+            System.out.println(" New client on @" + s.getInetAddress().toString().split("/")[1] + ":" + s.getPort());
             lh.serverLog.write( " New client on @" + s.getInetAddress().toString().split("/")[1] + ":" + s.getPort());
             lh.serverLog.newLine();
             // obtain input and output streams

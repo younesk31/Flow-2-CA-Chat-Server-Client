@@ -66,7 +66,7 @@ class ClientHandler implements Runnable {
                 // take what we receive and put it trough a tokenizer that splits at delimiter '#'
                 StringTokenizer st = new StringTokenizer(received, "#");
                 String cmd = st.nextToken();
-                String recipient = null;
+                String recipient = "null";
                 String msgToSend = null;
                 String[] recipients = null;
                 // tokenizer and send to more functionality
@@ -93,12 +93,17 @@ class ClientHandler implements Runnable {
                         // lh.serverLog.write("MESSAGE#" + this.name + "-->all#" + msgToSend)
                         mc.dos.writeUTF("MESSAGE#*#" + msgToSend);
                         } else {
+                            this.dos.writeUTF("SERVER#" + "INGEN ONLINE");
                             break;
                         }
                         // Send a dm to a specific person
-                    } else if (cmd.contains("SEND") && mc.name.equals(recipient) && mc.isloggedin && !mc.name.equals(this.name)) {
-                        mc.dos.writeUTF("MESSAGE#" + this.name + "#" + msgToSend);
-                        break;
+                    } else if (cmd.contains("SEND") && mc.name.equals(recipient) && mc.isloggedin) {
+                        if (!mc.name.equals(this.name)) {
+                            mc.dos.writeUTF("MESSAGE#" + this.name + "#" + msgToSend);
+                            break;
+                        } else {
+                            break;
+                        }
                     } else if (cmd.contains("SEND") && recipients != null && mc.isloggedin && !mc.name.equals(this.name)) {
                         boolean messageSend;
                         for (String name : recipients) {

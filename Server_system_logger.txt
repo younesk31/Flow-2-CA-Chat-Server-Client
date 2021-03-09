@@ -1,0 +1,17 @@
+ New client on @127.0.0.1:53817
+ Authorized user: 1 Connected!
+ New client on @127.0.0.1:53867
+ Authorized user: 1 Connected!
+ New client on @127.0.0.1:53892
+ Authorized user: 2 Connected!
+ New client on @127.0.0.1:54000
+ Authorized user: 1 Connected!
+ New client on @127.0.0.1:54017
+ Authorized user: 2 Connected!
+ New client on @127.0.0.1:54246
+ Authorized user: 1 Connected!
+ New client on @127.0.0.1:54258
+ Authorized user: 2 Connected!
+ New client on @127.0.0.1:55119
+ New client on @127.0.0.1:55168
+ Authorized user: 1 Connected!
