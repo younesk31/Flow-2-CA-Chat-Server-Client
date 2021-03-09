@@ -88,7 +88,8 @@ class ClientHandler implements Runnable {
                         // Send a msg to all
                     } else if (cmd.contains("SEND") && recipient.contains("*") && mc.isloggedin) {
                         if (!mc.name.equals(this.name)) {
-                            mc.dos.writeUTF("MESSAGE#" + this.name + "-->all#" + msgToSend);
+                            mc.dos.writeUTF("MESSAGE#*#" + msgToSend);
+                            //mc.dos.writeUTF("MESSAGE#" + this.name + "#" + msgToSend);
                         } else {
                             break;
                         }
