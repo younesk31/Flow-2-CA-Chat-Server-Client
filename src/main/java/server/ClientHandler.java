@@ -12,6 +12,7 @@ class ClientHandler implements Runnable {
     private final String name;
     Socket s;
     boolean isloggedin;
+    LogHandler lh = new LogHandler();
 
     public ClientHandler(Socket s, String name, DataInputStream dis, DataOutputStream dos) {
         this.dis = dis;
@@ -88,8 +89,9 @@ class ClientHandler implements Runnable {
                         // Send a msg to all
                     } else if (cmd.contains("SEND") && recipient.contains("*") && mc.isloggedin) {
                         if (!mc.name.equals(this.name)) {
-                            mc.dos.writeUTF("MESSAGE#*#" + msgToSend);
-                            //mc.dos.writeUTF("MESSAGE#" + this.name + "#" + msgToSend);
+                      //This is how you would write to the log file. But we dident need it.
+                        // lh.serverLog.write("MESSAGE#" + this.name + "-->all#" + msgToSend)
+                        mc.dos.writeUTF("MESSAGE#*#" + msgToSend);
                         } else {
                             break;
                         }

@@ -6,4 +6,4 @@ https://docs.google.com/document/d/1aE1MlsTAAYksCPpI4YZu-I_uLYqZssoobsmA-GHmiHk/
 
 
 ## Log Fil
-https://github.com/younesk31/Flow-2-CA-Chat-Server-Client/blob/main/Log-fil.txt
+https://docs.google.com/document/d/1Lnr9GWQ5e7Oh5jleJ12ImJhNn9d1BViUjWtDNwfOwjU/edit?usp=sharing
