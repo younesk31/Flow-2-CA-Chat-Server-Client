@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.StringTokenizer;
 
+import static server.ChatServer.ar;
+
 class ClientHandler implements Runnable {
     final DataInputStream dis;
     final DataOutputStream dos;
@@ -26,14 +28,14 @@ class ClientHandler implements Runnable {
     public void justConnected() throws IOException {
         StringBuilder connected = new StringBuilder();
         connected.append("ONLINE#");
-        for (ClientHandler ch : ChatServer.ar) {
+        for (ClientHandler ch : ar) {
             if (ch.isloggedin) {
                 connected.append(ch.name).append(",");
             }
         }
         connected.deleteCharAt(connected.length() - 1);
 
-        for (ClientHandler ch2 : ChatServer.ar) {
+        for (ClientHandler ch2 : ar) {
             ch2.dos.writeUTF(connected.toString());
         }
     }
@@ -43,17 +45,26 @@ class ClientHandler implements Runnable {
         StringBuilder connected = new StringBuilder();
         connected.append("Server: '").append(this.name).append("' Left the server!\n");
         connected.append("ONLINE#");
-        for (ClientHandler ch : ChatServer.ar) {
+        for (ClientHandler ch : ar) {
             if (ch.isloggedin) {
                 connected.append(ch.name).append(",");
             }
         }
         connected.deleteCharAt(connected.length() - 1);
-        for (ClientHandler ch2 : ChatServer.ar) {
+        for (ClientHandler ch2 : ar) {
             if (ch2.isloggedin) {
                 ch2.dos.writeUTF(connected.toString());
             }
         }
+    }
+
+    public void closethatshit() throws IOException {
+        this.isloggedin = false;
+        closeOnline();
+        this.s.close();
+        this.dis.close();
+        this.dos.close();
+        ar.remove(this);
     }
 
     @Override
@@ -66,7 +77,7 @@ class ClientHandler implements Runnable {
                 // take what we receive and put it trough a tokenizer that splits at delimiter '#'
                 StringTokenizer st = new StringTokenizer(received, "#");
                 String cmd = st.nextToken();
-                String recipient = "null";
+                String recipient = null;
                 String msgToSend = null;
                 String[] recipients = null;
                 // tokenizer and send to more functionality
@@ -80,75 +91,61 @@ class ClientHandler implements Runnable {
                     }
                 }
                 // most of the functionality to send messages to eachother on the server
-                for (ClientHandler mc : ChatServer.ar) {
-                    // Listen to the Close cmd and inform the rest that this user has left the server
-                    if (cmd.equals("CLOSE") && !mc.name.equals(this.name)) {
-                        this.isloggedin = false;
-                        closeOnline();
-                        break;
-                        // Send a msg to all
-                    } else if (cmd.contains("SEND") && recipient.contains("*") && mc.isloggedin) {
-                        if (!mc.name.equals(this.name)) {
-                      //This is how you would write to the log file. But we dident need it.
-                        // lh.serverLog.write("MESSAGE#" + this.name + "-->all#" + msgToSend)
-                        mc.dos.writeUTF("MESSAGE#*#" + msgToSend);
-                        } else {
-                            this.dos.writeUTF("SERVER#" + "INGEN ONLINE");
-                            break;
+                // Listen to the Close cmd and inform the rest that this user has left the server
+                if (cmd.equals("CLOSE")) {
+                    try {
+                        this.dos.writeUTF("CLOSE#0");
+                        closethatshit();
+                    } catch (Exception ignored) {
+                    }
+                    // Send a msg to all
+                } else if (cmd.contains("SEND") && recipient.contains("*") && this.isloggedin) {
+                    if (ar.size() > 1) {
+                        for (ClientHandler mc : ar) {
+                            if (!mc.name.equals(this.name)) {
+                                lh.serverLog.write("MESSAGE#" + this.name + " --> to all#" + msgToSend);
+                                mc.dos.writeUTF("MESSAGE#*#" + msgToSend);
+                            }
                         }
-                        // Send a dm to a specific person
-                    } else if (cmd.contains("SEND") && mc.name.equals(recipient) && mc.isloggedin) {
-                        if (!mc.name.equals(this.name)) {
-                            mc.dos.writeUTF("MESSAGE#" + this.name + "#" + msgToSend);
-                            break;
-                        } else {
-                            break;
+                    } else {
+                        this.dos.writeUTF("SERVER#" + "INGEN ONLINE");
+                    }
+                    // Send a dm to a specific person
+                } else if (cmd.contains("SEND") && !recipient.contains("*") && !recipient.equals(null) && this.isloggedin) {
+                    if (!recipient.contains(",")) {
+                        for (ClientHandler mc : ar) {
+                            if (mc.name.equals(recipient)) {
+                                mc.dos.writeUTF("MESSAGE#" + this.name + "#" + msgToSend);
+                                break;
+                            }
                         }
-                    } else if (cmd.contains("SEND") && recipients != null && mc.isloggedin && !mc.name.equals(this.name)) {
-                        boolean messageSend;
-                        for (String name : recipients) {
-                            messageSend = false;
-                            for (ClientHandler mc1 : ChatServer.ar) {
-                                if (name.equals(mc1.name) && mc1.isloggedin) {
-                                    mc1.dos.writeUTF("MESSAGE#" + this.name + "#" + msgToSend);
-                                    messageSend = true;
+                    } else if (recipient.contains(",")) {
+                        boolean messagesend;
+                        for (String s : recipients) {
+                            messagesend = false;
+                            for (ClientHandler mc : ar) {
+                                if (s.equals(mc.name) && mc.isloggedin) {
+                                    mc.dos.writeUTF("MESSAGE#" + this.name + "#" + msgToSend);
+                                    messagesend = true;
                                     break;
                                 }
                             }
-                            if (!messageSend) {
-                                dos.writeUTF(name + " not found");
+                            if (!messagesend) {
+                                dos.writeUTF(s + " not found");
                             }
                         }
-                        break;
-                        // send a close cmd to the client if it doesn't meet server syntax (illegal input)
                     } else {
                         dos.writeUTF("CLOSE#1");
-                        this.isloggedin = false;
-                        closeOnline();
-                        //ChatServer.ar.remove(this.s);
-                        this.s.close();
-                        break;
+                        closethatshit();
                     }
-                }
-                // close the client connection if the client wishes to do so
-                if (cmd.equals("CLOSE")) {
-                    this.dos.writeUTF("CLOSE#0");
-                    this.isloggedin = false;
-                    //ChatServer.ar.remove(this.s);
-                    this.s.close();
-                    break;
+                } else {
+                    // illegal input
+                    dos.writeUTF("CLOSE#1");
+                    closethatshit();
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
-        try {
-            // close and free resources
-            this.dis.close();
-            this.dos.close();
-        } catch (
-                IOException e) {
-            e.printStackTrace();
         }
     }
 }
