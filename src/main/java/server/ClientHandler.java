@@ -65,7 +65,7 @@ class ClientHandler implements Runnable {
                 // take what we receive and put it trough a tokenizer that splits at delimiter '#'
                 StringTokenizer st = new StringTokenizer(received, "#");
                 String cmd = st.nextToken();
-                String recipient = "null";
+                String recipient = null;
                 String msgToSend = null;
                 String[] recipients = null;
                 // tokenizer and send to more functionality
