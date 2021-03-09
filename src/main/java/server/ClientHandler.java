@@ -10,7 +10,6 @@ class ClientHandler implements Runnable {
     final DataInputStream dis;
     final DataOutputStream dos;
     private final String name;
-    LogHandler lh = new LogHandler();
     Socket s;
     boolean isloggedin;
 
@@ -35,8 +34,6 @@ class ClientHandler implements Runnable {
 
         for (ClientHandler ch2 : ChatServer.ar) {
             ch2.dos.writeUTF(connected.toString());
-            ch2.lh.clientLog.write(connected.toString());
-            lh.clientLog.newLine();
         }
     }
 
@@ -54,8 +51,6 @@ class ClientHandler implements Runnable {
         for (ClientHandler ch2 : ChatServer.ar) {
             if (ch2.isloggedin) {
                 ch2.dos.writeUTF(connected.toString());
-                ch2.lh.clientLog.write(connected.toString());
-                lh.clientLog.newLine();
             }
         }
     }
@@ -94,16 +89,12 @@ class ClientHandler implements Runnable {
                     } else if (cmd.contains("SEND") && recipient.contains("*") && mc.isloggedin) {
                         if (!mc.name.equals(this.name)) {
                             mc.dos.writeUTF("MESSAGE#" + this.name + "-->all#" + msgToSend);
-                            mc.lh.clientLog.write("MESSAGE#" + this.name + "-->all#" + msgToSend);
-                            mc.lh.clientLog.newLine();
                         } else {
                             break;
                         }
                         // Send a dm to a specific person
                     } else if (cmd.contains("SEND") && mc.name.equals(recipient) && mc.isloggedin && !mc.name.equals(this.name)) {
                         mc.dos.writeUTF("MESSAGE#" + this.name + "#" + msgToSend);
-                        mc.lh.clientLog.write("MESSAGE#" + this.name + "#" + msgToSend);
-                        mc.lh.clientLog.newLine();
                         break;
                     } else if (cmd.contains("SEND") && recipients != null && mc.isloggedin && !mc.name.equals(this.name)) {
                         boolean messageSend;
@@ -112,16 +103,12 @@ class ClientHandler implements Runnable {
                             for (ClientHandler mc1 : ChatServer.ar) {
                                 if (name.equals(mc1.name) && mc1.isloggedin) {
                                     mc1.dos.writeUTF("MESSAGE#" + this.name + "#" + msgToSend);
-                                    mc1.lh.clientLog.write("MESSAGE#" + this.name + "#" + msgToSend);
-                                    mc1.lh.clientLog.newLine();
                                     messageSend = true;
                                     break;
                                 }
                             }
                             if (!messageSend) {
                                 dos.writeUTF(name + " not found");
-                                lh.clientLog.write(name + " not found");
-                                lh.clientLog.newLine();
                             }
                         }
                         break;
@@ -143,14 +130,12 @@ class ClientHandler implements Runnable {
                     this.s.close();
                     break;
                 }
-                lh.clientLog.flush();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
         try {
             // close and free resources
-            lh.clientLog.close();
             this.dis.close();
             this.dos.close();
 
