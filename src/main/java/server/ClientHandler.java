@@ -153,8 +153,8 @@ class ClientHandler implements Runnable {
             lh.clientLog.close();
             this.dis.close();
             this.dos.close();
-
-        } catch (IOException e) {
+        } catch (
+                IOException e) {
             e.printStackTrace();
         }
     }
