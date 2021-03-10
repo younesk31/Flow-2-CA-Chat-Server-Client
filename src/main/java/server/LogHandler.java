@@ -4,8 +4,14 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class LogHandler {
+    public final String R = "\033[0;31m";     // RED
+    public final String RE = "\033[0m";  // Text Reset
+    public final String df = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yy HH:mm"));
+
     FileWriter serverlog;
 
     // very simple file writer system

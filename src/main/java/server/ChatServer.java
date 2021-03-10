@@ -6,6 +6,7 @@ import java.net.Socket;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Vector;
 
@@ -21,6 +22,9 @@ public class ChatServer {
         users.add("2");
         users.add("3");
         users.add("4");
+        users.add("younes");
+        users.add("søren");
+        users.add("august");
 
         ServerSocket ss = new ServerSocket(6666);
         Socket s;
@@ -30,7 +34,8 @@ public class ChatServer {
             LogHandler lh = new LogHandler();
             // Accept the incoming request
             s = ss.accept();
-            System.out.println(" New client on @" + s.getInetAddress().toString().split("/")[1] + ":" + s.getPort());
+
+            System.out.println(lh.df+" "+lh.R+"SERVER#" +lh.RE+ " New client on @" + s.getInetAddress().toString().split("/")[1] + ":" + s.getPort());
             lh.serverLog.write( " New client on @" + s.getInetAddress().toString().split("/")[1] + ":" + s.getPort());
             lh.serverLog.newLine();
             // obtain input and output streams
@@ -46,6 +51,7 @@ public class ChatServer {
                     boolean loggin = false;
                     for (String string : users) {
                         if (string.equals(name)) {
+                            System.out.println(lh.df+" "+lh.R+"SERVER#" +lh.RE+ " Authorized user: " + name + " Connected!");
                             lh.serverLog.write(" Authorized user: " + name + " Connected!");
                             lh.serverLog.newLine();
                             // Create a new handler object for handling this request.
@@ -57,20 +63,21 @@ public class ChatServer {
                             // start the thread.
                             t.start();
                             // check who is connected on login and output it
-                            dos.writeUTF("Welcome to the Chit-Chat-Server");
+                            dos.writeUTF(lh.df+" "+lh.R+"SERVER#" +lh.RE+ " Welcome to the Chit-Chat-Server");
                             match.justConnected();
                             loggin = true;
                         }
                     }
                     if (!loggin) {
                         dos.writeUTF("CLOSE#2");
-                        lh.serverLog.write(" Did not find user: " + name + " - Closed - " + s.getInetAddress().toString().split("/")[1] + ":" + s.getPort() + " Connection");
+                        System.out.println(lh.df+" "+lh.R+"SERVER#" +lh.RE+ " Did not find user: " + name + " - Closing Connection - " + s.getInetAddress().toString().split("/")[1] + ":" + s.getPort());
+                        lh.serverLog.write(" Did not find user: " + name + " - Closing Connection - " + s.getInetAddress().toString().split("/")[1] + ":" + s.getPort());
                         lh.serverLog.newLine();
                     }
                 }
                 lh.serverLog.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                System.out.println(lh.df+" "+lh.R+"SERVER#" +lh.RE+ "Server connection error");
             }
         } while (!ss.isClosed());
     }
