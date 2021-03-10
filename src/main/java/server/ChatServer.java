@@ -39,7 +39,6 @@ public class ChatServer {
 
             // Accept the incoming request
             s = ss.accept();
-
             System.out.println(lh.df + " " + lh.R + "SERVER#" + lh.RE + " New client on @" + s.getInetAddress().toString().split("/")[1] + ":" + s.getPort());
             lh.serverLog.write(" New client on @" + s.getInetAddress().toString().split("/")[1] + ":" + s.getPort());
             lh.serverLog.newLine();
@@ -89,12 +88,13 @@ public class ChatServer {
                         lh.serverLog.newLine();
                     }
                 }
-                lh.serverLog.close();
+                lh.serverLog.flush();
             } catch (IOException e) {
                 System.out.println(lh.df + " " + lh.R + "SERVER#" + lh.RE + " Server connection error");
                 break;
             }
         } while (!ss.isClosed());
+        lh.serverLog.flush();
     }
 
 }
