@@ -1,12 +1,10 @@
 package server;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Vector;
 
@@ -17,11 +15,18 @@ public class ChatServer {
 
 
     public static void main(String[] args) throws IOException {
+        // Create the LogHandler
+        LogHandler lh = new LogHandler();
+        // Hardcoded Users
         ArrayList<String> users = new ArrayList<>();
         users.add("1");
         users.add("2");
         users.add("3");
         users.add("4");
+        users.add("user1");
+        users.add("user2");
+        users.add("user3");
+        users.add("user4");
         users.add("younes");
         users.add("søren");
         users.add("august");
@@ -29,14 +34,14 @@ public class ChatServer {
         ServerSocket ss = new ServerSocket(6666);
         Socket s;
         // infinite loop for client request for as long the socket is open
+        System.out.println(lh.df + " " + lh.R + "SERVER#" + lh.RE + " Listing on port: "+ss.getLocalPort());
         do {
-            // Create the LogHandler
-            LogHandler lh = new LogHandler();
+
             // Accept the incoming request
             s = ss.accept();
 
-            System.out.println(lh.df+" "+lh.R+"SERVER#" +lh.RE+ " New client on @" + s.getInetAddress().toString().split("/")[1] + ":" + s.getPort());
-            lh.serverLog.write( " New client on @" + s.getInetAddress().toString().split("/")[1] + ":" + s.getPort());
+            System.out.println(lh.df + " " + lh.R + "SERVER#" + lh.RE + " New client on @" + s.getInetAddress().toString().split("/")[1] + ":" + s.getPort());
+            lh.serverLog.write(" New client on @" + s.getInetAddress().toString().split("/")[1] + ":" + s.getPort());
             lh.serverLog.newLine();
             // obtain input and output streams
             DataInputStream dis = new DataInputStream(s.getInputStream());
@@ -49,9 +54,18 @@ public class ChatServer {
                     //String twentyLong = format("%.20s", rv.split("#")[1]);
                     String name = rv.split("#")[1];
                     boolean loggin = false;
+                    for (ClientHandler mc : ar) {
+                        if (mc.name.equals(name) && mc.isloggedin) {
+                            dos.writeUTF(lh.t + " " + lh.R + "SERVER#" + lh.RE + " User: "+name+" already logged in!");
+                            dos.writeUTF("CLOSE#2");
+                            loggin = true;
+                            s.close();
+                        }
+                    }
+                    
                     for (String string : users) {
-                        if (string.equals(name)) {
-                            System.out.println(lh.df+" "+lh.R+"SERVER#" +lh.RE+ " Authorized user: " + name + " Connected!");
+                        if ((string.equals(name)) && !loggin) {
+                            System.out.println(lh.df + " " + lh.R + "SERVER#" + lh.RE + " Authorized user: " + name + " Connected!");
                             lh.serverLog.write(" Authorized user: " + name + " Connected!");
                             lh.serverLog.newLine();
                             // Create a new handler object for handling this request.
@@ -63,21 +77,22 @@ public class ChatServer {
                             // start the thread.
                             t.start();
                             // check who is connected on login and output it
-                            dos.writeUTF(lh.df+" "+lh.R+"SERVER#" +lh.RE+ " Welcome to the Chit-Chat-Server");
+                            dos.writeUTF(lh.t + " " + lh.R + "SERVER#" + lh.RE + " Welcome to the Chit-Chat-Server");
                             match.justConnected();
                             loggin = true;
                         }
                     }
                     if (!loggin) {
                         dos.writeUTF("CLOSE#2");
-                        System.out.println(lh.df+" "+lh.R+"SERVER#" +lh.RE+ " Did not find user: " + name + " - Closing Connection - " + s.getInetAddress().toString().split("/")[1] + ":" + s.getPort());
+                        System.out.println(lh.df + " " + lh.R + "SERVER#" + lh.RE + " Did not find user: " + name + " - Closing Connection - " + s.getInetAddress().toString().split("/")[1] + ":" + s.getPort());
                         lh.serverLog.write(" Did not find user: " + name + " - Closing Connection - " + s.getInetAddress().toString().split("/")[1] + ":" + s.getPort());
                         lh.serverLog.newLine();
                     }
                 }
                 lh.serverLog.close();
             } catch (IOException e) {
-                System.out.println(lh.df+" "+lh.R+"SERVER#" +lh.RE+ "Server connection error");
+                System.out.println(lh.df + " " + lh.R + "SERVER#" + lh.RE + " Server connection error");
+                break;
             }
         } while (!ss.isClosed());
     }

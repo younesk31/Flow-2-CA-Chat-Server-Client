@@ -11,7 +11,7 @@ import static server.ChatServer.ar;
 class ClientHandler implements Runnable {
     final DataInputStream dis;
     final DataOutputStream dos;
-    private final String name;
+    final String name;
     Socket s;
     boolean isloggedin;
     LogHandler lh = new LogHandler();
@@ -27,7 +27,7 @@ class ClientHandler implements Runnable {
     // check the array for online users as soon as a new client connects and output it
     public void justConnected() throws IOException {
         StringBuilder connected = new StringBuilder();
-        connected.append("ONLINE#");
+        connected.append(lh.t).append(" ").append(lh.G).append("ONLINE#").append(lh.RE);
         for (ClientHandler ch : ar) {
             if (ch.isloggedin) {
                 connected.append(ch.name).append(",");
@@ -43,8 +43,8 @@ class ClientHandler implements Runnable {
     // check the array for online users as soon as a client disconnects and output it to the online users
     public void closeOnline() throws IOException {
         StringBuilder connected = new StringBuilder();
-        connected.append(lh.df).append(" ").append(lh.R).append("SERVER#").append(lh.RE).append(" '").append(this.name).append("' Left the server!\n");
-        connected.append("ONLINE#");
+        connected.append(lh.t).append(" ").append(lh.R).append("SERVER#").append(lh.RE).append(" '").append(this.name).append("' Left the server!\n");
+        connected.append(lh.t).append(" ").append(lh.G).append("ONLINE#").append(lh.RE);
         for (ClientHandler ch : ar) {
             if (ch.isloggedin) {
                 connected.append(ch.name).append(",");
@@ -68,7 +68,7 @@ class ClientHandler implements Runnable {
             this.dos.close();
             ar.remove(this);
         } catch (IOException e) {
-            System.out.println(lh.df+" "+lh.R+"SERVER#" +lh.RE+ " Server client socket error 3");
+            System.out.println(lh.df + " " + lh.R + "SERVER#" + lh.RE + " Server client socket error 3");
         }
     }
 
@@ -97,34 +97,34 @@ class ClientHandler implements Runnable {
                 }
                 // most of the functionality to send messages to eachother on the server
                 // Listen to the Close cmd and inform the rest that this user has left the server
-                if (cmd.equals("CLOSE")) {
+                if (cmd.contains("CLOSE")) {
                     try {
                         this.dos.writeUTF("CLOSE#0");
-                        System.out.println(lh.df+" "+lh.R+"SERVER#" +lh.RE+ " Closed socket for: " + this.name);
+                        System.out.println(lh.df + " " + lh.R + "SERVER#" + lh.RE + " Closed socket connection for user: " + this.name);
                         closethatshit();
                     } catch (IOException e) {
-                        System.out.println(lh.df+" "+lh.R+"SERVER#" +lh.RE+ " Server client socket error 1");
+                        System.out.println(lh.df + " " + lh.R + "SERVER#" + lh.RE + " Server client socket error 1");
+                        break;
                     }
                     // Send msg to all
                 } else if (cmd.contains("SEND") && recipient.contains("*") && this.isloggedin) {
                     if (ar.size() > 1) {
                         for (ClientHandler mc : ar) {
-                            if (!mc.name.equals(this.name)) {
-                                lh.serverLog.write(lh.df+"MESSAGE#" + this.name + " --> to all#" + msgToSend);
-                                System.out.println(lh.df+" "+lh.R+"SERVER#" +lh.RE+ "MESSAGE#" + this.name + " --> to all#" + msgToSend);
-                                mc.dos.writeUTF(lh.df+"MESSAGE#*#" + msgToSend);
+                            if (!mc.name.equalsIgnoreCase(this.name)) {
+                                lh.serverLog.write(lh.df + "MESSAGE#" + this.name + " --> to all#" + msgToSend);
+                                mc.dos.writeUTF(lh.t + " " + lh.B + "MESSAGE#" + lh.RE + msgToSend);
                             }
                         }
                     } else {
-                        this.dos.writeUTF(lh.R+ "SERVER#" +lh.RE+ "Ingen er online!");
+                        this.dos.writeUTF(lh.t + " " + lh.R + "SERVER#" + lh.RE + "Ingen er online!");
                     }
-                    // Send dm to a specific person or more || get kicked
+                    // Send dm to a specific person or more || get kicked for input mismatch
                 } else if (cmd.contains("SEND") && !recipient.contains("*") && !recipient.equals(null) && this.isloggedin) {
                     if (!recipient.contains(",")) {
                         for (ClientHandler mc : ar) {
-                            if (mc.name.equals(recipient)) {
-                                lh.serverLog.write(lh.df+"MESSAGE#" + this.name + "#" + msgToSend);
-                                mc.dos.writeUTF(lh.df+"MESSAGE#" + this.name + "#" + msgToSend);
+                            if (mc.name.equalsIgnoreCase(recipient)) {
+                                lh.serverLog.write(lh.df + "MESSAGE#" + this.name + "#" + msgToSend);
+                                mc.dos.writeUTF(lh.t + " " + lh.B + "MESSAGE#" + lh.RE + this.name + "#" + msgToSend);
                                 break;
                             }
                         }
@@ -133,31 +133,32 @@ class ClientHandler implements Runnable {
                         for (String s : recipients) {
                             messagesend = false;
                             for (ClientHandler mc : ar) {
-                                if (s.equals(mc.name) && mc.isloggedin) {
-                                    lh.serverLog.write(lh.df+" MESSAGE#" + this.name + "#" + msgToSend);
-                                    mc.dos.writeUTF(lh.df+" MESSAGE#" + this.name + "#" + msgToSend);
+                                if (s.contains(mc.name) && mc.isloggedin) {
+                                    lh.serverLog.write(lh.df + "MESSAGE#" + this.name + "#" + msgToSend);
+                                    mc.dos.writeUTF(lh.t + " " + lh.B + "MESSAGE#" + lh.RE + this.name + "#" + msgToSend);
                                     messagesend = true;
                                     break;
                                 }
                             }
                             if (!messagesend) {
-                                System.out.println(lh.df+" "+lh.R+"SERVER#"+lh.RE+ s + " not found");
-                                dos.writeUTF(lh.df+ " " +s+ " not found");
+                                System.out.println(lh.df + " " + lh.R + "SERVER#" + lh.RE + s + " not found");
+                                dos.writeUTF(lh.t + " " + s + " not found");
                             }
                         }
                     } else {
                         dos.writeUTF("CLOSE#1");
-                        System.out.println(lh.df+" "+lh.R+"SERVER#" +lh.RE+ " Closed socket for: " + this.name);
+                        System.out.println(lh.df + " " + lh.R + "SERVER#" + lh.RE + " Closed socket connection for user: " + this.name);
                         closethatshit();
                     }
                 } else {
                     // illegal input
                     dos.writeUTF("CLOSE#1");
-                    System.out.println(lh.df+" "+lh.R+"SERVER#" +lh.RE+ " Closed socket for: " + this.name);
+                    System.out.println(lh.df + " " + lh.R + "SERVER#" + lh.RE + " Closed socket connection for user: " + this.name);
                     closethatshit();
                 }
             } catch (IOException e) {
-                System.out.println(lh.df+" "+lh.R+"SERVER#" +lh.RE+ " Server client socket error 2");
+                System.out.println(lh.df + " " + lh.R + "SERVER#" + lh.RE + " Server client socket error 2");
+                break;
             }
         }
     }
