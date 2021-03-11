@@ -96,6 +96,4 @@ public class ChatServer {
         } while (!ss.isClosed());
         lh.serverLog.flush();
     }
-
 }
-
