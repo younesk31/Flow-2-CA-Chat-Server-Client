@@ -78,7 +78,7 @@ public class MyClient {
     }
 
     public static void main(String[] args) throws IOException {
-        MyClient client = new MyClient("127.0.0.1", 5000);
+        MyClient client = new MyClient("207.154.219.212", 5000);
     }
 }
 
